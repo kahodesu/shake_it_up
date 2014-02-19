@@ -9,6 +9,7 @@ int startPlayTime; //to keep start of play time
 int playTime; // too keep how long can was played
 boolean shakenUp; //to keep whether can had been shaken up
 boolean restartGame; //true when the game should be restarted
+boolean touched; //true when can is being touched (shaken)
 
 PImage shakeImage;  //images for screen
 PImage pickImage; 
@@ -41,32 +42,36 @@ void setup() {
   explosionSound = minim.loadSample("explosion.wav", 512);
   shakeSound = minim.loadSample("shakecan.mp3", 512);
 
-  String portName = Serial.list()[0];//prepare for serial communications
-  myPort = new Serial(this, portName, 9600);
+  println(Serial.list());//prints out list of ports, input num of Arduino USB port on line below
+  String portName = Serial.list()[14]; //assigning port for serail communications with Arduino
+  myPort = new Serial(this, portName, 9600); 
 
   startGame();//for being able to restart
 }
 
 //======DRAW - LOOPS FOREVER=====
 void draw() {
-  if(restartGame) {
+  if (restartGame) {
     delay(5000);
     startGame();
   }
 
   if ( myPort.available() > 0) {  // If data is available,
     val = myPort.read();         // read it and store it in val
+    //println(val); //FOR DEBUGGING
   }
   if (!shakenUp) { //if the can hasn't been shaken up yet
-    if (val == 1) { //the first time it is touched
+    if (val == 1 && !touched) { //the first time it is touched
       //if (keyPressed && key == ' ') {//FOR DEBUGGING
+      touched = true;
       println("pressed");
       startTime = millis();
       shakeSound.trigger();
     }
-    if (val == 2) {//when it is released
+    if (val == 2 && touched) {//when it is released, after it's been shaken
       // if (keyPressed && key == '2') {//FOR DEBUGGING
       image(pickImage, 0, 0);
+      touched = false;
       println("released");
       startPlayTime = millis();
       shakeTime = millis() - startTime;//records how long it's been shaken
@@ -88,7 +93,8 @@ void draw() {
         println("win");
         canOpenSound.trigger();//then you can drink it, aaaaah!
       }
-        restartGame = true;
+
+      restartGame = true;
     }
   }
 }
@@ -100,6 +106,8 @@ void startGame() { // put in a seperate function here so the game can restart
   playTime = 0;
   shakenUp = false;
   restartGame = false;
+  touched = false;
+  val = 0;
   image(shakeImage, 0, 0);
   println("start");
 }
