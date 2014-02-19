@@ -8,6 +8,7 @@ int shakeTime; // to keep how long can was shook
 int startPlayTime; //to keep start of play time
 int playTime; // too keep how long can was played
 boolean shakenUp; //to keep whether can had been shaken up
+boolean restartGame; //true when the game should be restarted
 
 PImage shakeImage;  //images for screen
 PImage pickImage; 
@@ -48,6 +49,10 @@ void setup() {
 
 //======DRAW - LOOPS FOREVER=====
 void draw() {
+  if(restartGame) {
+    delay(5000);
+    startGame();
+  }
 
   if ( myPort.available() > 0) {  // If data is available,
     val = myPort.read();         // read it and store it in val
@@ -83,8 +88,7 @@ void draw() {
         println("win");
         canOpenSound.trigger();//then you can drink it, aaaaah!
       }
-      delay(5000);
-      startGame();
+        restartGame = true;
     }
   }
 }
@@ -95,6 +99,7 @@ void startGame() { // put in a seperate function here so the game can restart
   startPlayTime = 0;
   playTime = 0;
   shakenUp = false;
+  restartGame = false;
   image(shakeImage, 0, 0);
   println("start");
 }
